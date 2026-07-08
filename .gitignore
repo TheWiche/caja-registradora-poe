@@ -1,0 +1,23 @@
+# Datos del usuario: nunca se versionan (contienen ventas y contraseñas reales)
+datos/
+
+# Artefactos de compilación de PyInstaller
+build/
+dist/
+*.spec
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Capturas y archivos de trabajo temporales
+assets/_captura_*.png
+assets/_previsualizacion_*.png
+assets/_zoom*.png
+
+# Editor / SO
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

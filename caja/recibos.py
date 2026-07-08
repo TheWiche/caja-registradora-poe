@@ -1,0 +1,154 @@
+"""Generación de recibos: texto (impresora térmica de 40 columnas),
+PDF (generador propio, sin dependencias externas) e impresión vía Windows.
+
+El PDF se escribe a mano siguiendo la especificación mínima de PDF 1.4
+con fuente Courier incorporada en todo visor: cero librerías, cero
+Internet, cumple plan.md §6.1.
+"""
+
+import os
+import logging
+
+from . import db
+from .util import fmt_dinero, fecha_legible
+
+ANCHO = 40  # columnas del recibo (papel térmico de 80 mm)
+
+log = logging.getLogger("caja")
+
+
+# ---------------------------------------------------------------- texto
+
+def _linea(car="-"):
+    return car * ANCHO
+
+
+def _fila(izquierda: str, derecha: str) -> str:
+    espacio = ANCHO - len(izquierda) - len(derecha)
+    return izquierda + " " * max(1, espacio) + derecha
+
+
+def lineas_recibo(venta: dict) -> list:
+    """Construye el recibo como lista de líneas de máximo 40 caracteres."""
+    negocio = db.obtener_config("nombre_negocio", "SISTEMA DE CAJA")
+    lineas = [
+        _linea("="),
+        negocio[:ANCHO].center(ANCHO),
+        "RECIBO DE VENTA".center(ANCHO),
+        _linea("="),
+        f"Factura: {venta['numero_factura']}",
+        f"Fecha:   {fecha_legible(venta['fecha'])}",
+        f"Cajero:  {venta['nombre_cajero'][:31]}",
+    ]
+    if venta.get("cliente_nombre"):
+        linea_cliente = f"Cliente: {venta['cliente_nombre'][:31]}"
+        lineas.append(linea_cliente)
+        if venta.get("cliente_nit"):
+            lineas.append(f"NIT/CC:  {venta['cliente_nit'][:31]}")
+    lineas += [
+        _linea(),
+        f"{'Producto':<18}{'Cant':>4}{'Precio':>8}{'Subtot':>10}",
+        _linea(),
+    ]
+    for det in venta["detalles"]:
+        lineas.append(
+            f"{det['nombre'][:18]:<18}{det['cantidad']:>4}"
+            f"{fmt_dinero(det['precio']):>8}{fmt_dinero(det['subtotal']):>10}"
+        )
+    lineas.append(_linea())
+    lineas.append(_fila("SUBTOTAL:", fmt_dinero(venta["subtotal"])))
+    if venta["iva_porcentaje"]:
+        lineas.append(
+            _fila(f"IVA ({venta['iva_porcentaje']}%):", fmt_dinero(venta["iva"]))
+        )
+    lineas.append(_fila("TOTAL:", fmt_dinero(venta["total"])))
+    lineas.append("")
+    lineas.append(_fila(f"Pago ({venta['metodo_pago']}):",
+                        fmt_dinero(venta["recibido"])))
+    lineas.append(_fila("CAMBIO:", fmt_dinero(venta["cambio"])))
+    if venta.get("codigo_autorizacion"):
+        lineas.append(_fila("Autorización:", venta["codigo_autorizacion"]))
+    lineas.append(_linea("="))
+    lineas.append("¡Gracias por su compra!".center(ANCHO))
+    if venta.get("entrenamiento"):
+        lineas.append("* VENTA DE ENTRENAMIENTO *".center(ANCHO))
+        lineas.append("* SIN VALOR COMERCIAL *".center(ANCHO))
+    lineas.append(_linea("="))
+    return lineas
+
+
+def texto_recibo(venta: dict) -> str:
+    return "\n".join(lineas_recibo(venta))
+
+
+# ---------------------------------------------------------------- PDF
+
+def _escapar_pdf(texto: str) -> str:
+    return texto.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
+
+
+def generar_pdf(venta: dict, ruta) -> str:
+    """Escribe el recibo como PDF mínimo válido (una página, Courier)."""
+    lineas = lineas_recibo(venta)
+    alto = max(220, 50 + 13 * len(lineas))
+    ancho_pagina = 270  # ~ ancho de tirilla térmica en puntos
+
+    contenido = ["BT", "/F1 9 Tf", "13 TL", f"1 0 0 1 20 {alto - 30} Tm"]
+    for ln in lineas:
+        contenido.append(f"({_escapar_pdf(ln)}) Tj T*")
+    contenido.append("ET")
+    flujo = "\n".join(contenido).encode("cp1252", "replace")
+
+    objetos = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        (f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {ancho_pagina} {alto}] "
+         f"/Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>").encode(),
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier "
+        b"/Encoding /WinAnsiEncoding >>",
+        b"<< /Length " + str(len(flujo)).encode() + b" >>\nstream\n" + flujo
+        + b"\nendstream",
+    ]
+
+    salida = bytearray(b"%PDF-1.4\n")
+    posiciones = []
+    for numero, cuerpo in enumerate(objetos, start=1):
+        posiciones.append(len(salida))
+        salida += f"{numero} 0 obj\n".encode() + cuerpo + b"\nendobj\n"
+
+    inicio_xref = len(salida)
+    salida += f"xref\n0 {len(objetos) + 1}\n".encode()
+    salida += b"0000000000 65535 f \n"
+    for pos in posiciones:
+        salida += f"{pos:010d} 00000 n \n".encode()
+    salida += (
+        f"trailer\n<< /Size {len(objetos) + 1} /Root 1 0 R >>\n"
+        f"startxref\n{inicio_xref}\n%%EOF\n"
+    ).encode()
+
+    ruta = str(ruta)
+    with open(ruta, "wb") as archivo:
+        archivo.write(salida)
+    log.info("PDF generado: %s", ruta)
+    return ruta
+
+
+def ruta_pdf_sugerida(venta: dict):
+    return db.CARPETA_TICKETS / f"{venta['numero_factura']}.pdf"
+
+
+# ---------------------------------------------------------------- impresión
+
+def imprimir(venta: dict) -> str:
+    """Envía el recibo a la impresora predeterminada de Windows.
+
+    Guarda el ticket como .txt (queda como constancia aunque no haya
+    impresora) y lo manda con el verbo 'print' del shell, que funciona
+    con impresoras térmicas instaladas con su driver de Windows.
+    """
+    ruta = db.CARPETA_TICKETS / f"{venta['numero_factura']}.txt"
+    ruta.write_text(texto_recibo(venta) + "\n\n\n", encoding="cp1252",
+                    errors="replace")
+    os.startfile(str(ruta), "print")
+    log.info("Recibo %s enviado a impresión", venta["numero_factura"])
+    return str(ruta)
