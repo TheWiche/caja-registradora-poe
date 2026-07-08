@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema de Caja Registradora Didáctica — POS educativo para Windows</title>
+<meta name="description" content="Simulador de punto de venta para cursos de Atención al Cliente y Manejo de Caja. Gratis, sin instalación, sin Internet, sin dependencias. Descárgalo para Windows.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sistema de Caja Registradora Didáctica">
+<meta property="og:description" content="Simulador de punto de venta para cursos de Atención al Cliente. Escaneo de códigos, cobro en efectivo/tarjeta/transferencia, recibos, historial y reportes — todo en un .exe portable para Windows.">
+<meta property="og:image" content="img/pantalla-venta.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="img/icono.png" type="image/png">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<div class="fondo-grilla"></div>
+<div class="scanlines"></div>
+<div class="resplandor uno"></div>
+<div class="resplandor dos"></div>
+<div class="resplandor tres"></div>
+
+<header class="barra">
+  <div class="envoltura" style="display:flex;align-items:center;justify-content:space-between;width:100%">
+    <div class="marca">
+      <img src="img/icono.png" alt="">
+      <span>SISTEMA DE CAJA<br><small>Herramienta didáctica</small></span>
+    </div>
+    <nav class="nav-links">
+      <a href="#funciones">Funciones</a>
+      <a href="#capturas">Capturas</a>
+      <a href="#demo">Probar demo</a>
+      <a href="#empezar">Instalación</a>
+      <a href="https://github.com/TheWiche/caja-registradora-poe">Código fuente</a>
+    </nav>
+    <a class="boton-nav" href="https://github.com/TheWiche/caja-registradora-poe/releases/latest/download/CajaRegistradora.exe">Descargar</a>
+  </div>
+</header>
+
+<!-- ============================================================ HERO -->
+<section class="hero">
+  <div class="envoltura">
+    <div class="chip-version">
+      <span class="punto"></span>
+      v1.0.0 disponible · Windows 10 / 11 · <span id="reloj-vivo">--/--/---- --:--:--</span>
+    </div>
+
+    <h1>La caja registradora<br><span class="resaltado">para aprender sin miedo a equivocarse.</span></h1>
+    <p class="sub">
+      Un punto de venta real —escaneo de códigos, cobro en efectivo, tarjeta y
+      transferencia, recibos, historial, reportes— empaquetado en un solo
+      <code>.exe</code>. Sin Internet, sin instalador, sin dependencias, sin
+      arriesgar un peso real mientras se practica.
+    </p>
+
+    <div class="acciones-hero">
+      <a class="boton-descarga" href="https://github.com/TheWiche/caja-registradora-poe/releases/latest/download/CajaRegistradora.exe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        <span class="textos">
+          <small>WINDOWS 10 / 11 · ~13 MB</small>
+          Descargar CajaRegistradora.exe
+        </span>
+      </a>
+      <a class="boton-secundario" href="#demo">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Probar sin descargar
+      </a>
+    </div>
+    <p class="nota-hero">No requiere Python ni permisos de administrador · El código fuente completo está en <code>github.com/TheWiche/caja-registradora-poe</code></p>
+
+    <div class="terminal-hero reveal">
+      <div class="barra-ventana">
+        <span class="punto-mac r"></span><span class="punto-mac a"></span><span class="punto-mac v"></span>
+        <span class="titulo-ventana">venta_en_curso.log</span>
+      </div>
+      <div class="cuerpo">
+        <div id="recibo-lineas"></div>
+        <hr>
+        <div class="total-linea"><span>TOTAL</span><span class="val" id="recibo-total">$0</span></div>
+        <div style="margin-top:10px;color:#93a1c2">&gt; venta registrada <span class="cursor-parpadeo"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ METRICAS -->
+<section class="seccion" style="padding-top:0">
+  <div class="envoltura">
+    <div class="metricas reveal">
+      <div class="metrica"><div class="num" data-contar="0" data-sufijo="">0</div><div class="etq">dependencias externas</div></div>
+      <div class="metrica"><div class="num" data-contar="20">0</div><div class="etq">productos de ejemplo</div></div>
+      <div class="metrica"><div class="num" data-contar="10" data-sufijo="s">0s</div><div class="etq">de arranque</div></div>
+      <div class="metrica"><div class="num" data-contar="100" data-sufijo="%">0%</div><div class="etq">operable con teclado</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CAPTURAS -->
+<section class="seccion" id="capturas">
+  <div class="envoltura">
+    <div class="encabezado-seccion reveal">
+      <span class="kicker">Así se ve</span>
+      <h2>Una interfaz que se siente como una caja real</h2>
+      <p>Botones grandes, visor tipo POS, y un flujo pensado para escanear, cobrar y entregar el cambio sin perder tiempo entre un cliente y el siguiente.</p>
+    </div>
+
+    <div class="galeria-capturas reveal" style="margin-bottom:70px">
+      <div class="mockup"><img src="img/pantalla-venta.png" alt="Pantalla de nueva venta del Sistema de Caja"></div>
+      <div class="galeria-texto">
+        <h3>Pantalla de venta</h3>
+        <p>El corazón del sistema: código de barras a la izquierda, visor de
+        total a la derecha, y el cobro como un paso aparte con
+        denominaciones rápidas — igual que una caja de verdad.</p>
+        <ul class="lista-check">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Lector USB o digitación manual, indistinto</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> «3*código» agrega tres unidades de una vez</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Ticket, cajero y reloj siempre visibles</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="galeria-capturas reveal">
+      <div class="galeria-texto" style="order:2">
+        <h3>Inicio de sesión con roles</h3>
+        <p>Cada cajero tiene su propio usuario; el administrador gestiona
+        productos, perfiles, reportes y configuración. Toda venta queda
+        asociada a quien la hizo.</p>
+        <ul class="lista-check">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Contraseñas con hash PBKDF2, nunca en texto plano</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Roles administrador / cajero</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Recupera la venta en curso si el equipo se apaga</li>
+        </ul>
+      </div>
+      <div class="mockup" style="order:1"><img src="img/pantalla-login.png" alt="Pantalla de inicio de sesión del Sistema de Caja"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FUNCIONES -->
+<section class="seccion" id="funciones">
+  <div class="envoltura">
+    <div class="encabezado-seccion reveal">
+      <span class="kicker">Todo lo que trae</span>
+      <h2>Pensado para practicar como en un trabajo real</h2>
+      <p>Cada función del plan de estudios de Atención al Cliente y Manejo de Caja, resuelta con la misma fidelidad que un POS comercial.</p>
+    </div>
+
+    <div class="rejilla-funciones reveal">
+      <div class="tarjeta-funcion">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10M7 7v10M11 7v3M11 14v3M15 7v10M19 7v10"/></svg></div>
+        <h3>Escaneo real</h3>
+        <p>Compatible con cualquier lector USB tipo teclado. Cero configuración: conectar y escanear.</p>
+      </div>
+      <div class="tarjeta-funcion">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+        <h3>Datáfono simulado</h3>
+        <p>Cobro con tarjeta débito/crédito sin lector real: animación de procesamiento, código de autorización y opción de practicar un rechazo.</p>
+        <span class="etiqueta-practica">Simulación de práctica</span>
+      </div>
+      <div class="tarjeta-funcion">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z"/></svg></div>
+        <h3>Transferencia con QR real</h3>
+        <p>Genera un código QR (motor propio, sin librerías) hacia una pasarela educativa local: un celular lo escanea y aprueba el pago desde su navegador.</p>
+        <span class="etiqueta-practica">Simulación de práctica</span>
+      </div>
+      <div class="tarjeta-funcion">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></div>
+        <h3>Recibos y PDF</h3>
+        <p>Imprime en cualquier impresora instalada o guarda el recibo como PDF — generado también sin librerías externas.</p>
+      </div>
+      <div class="tarjeta-funcion">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></div>
+        <h3>Historial con calendario</h3>
+        <p>Búsqueda por fecha con un mini calendario 100% navegable por teclado, o por número de factura.</p>
+      </div>
+      <div class="tarjeta-funcion">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v3M12 10v8M17 6v12"/></svg></div>
+        <h3>Reportes básicos</h3>
+        <p>Total vendido por día, número de ventas y producto más vendido, listos para revisar en clase.</p>
+      </div>
+      <div class="tarjeta-funcion">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Perfiles de usuario</h3>
+        <p>El administrador crea cajeros, restablece contraseñas y activa o desactiva perfiles sin perder la trazabilidad de las ventas.</p>
+      </div>
+      <div class="tarjeta-funcion">
+        <div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/></svg></div>
+        <h3>Cero Internet</h3>
+        <p>Base de datos local (SQLite), respaldos automáticos y recuperación ante apagones. Funciona igual con o sin red.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ DEMO INTERACTIVA -->
+<section class="seccion" id="demo">
+  <div class="envoltura">
+    <div class="encabezado-seccion reveal">
+      <span class="kicker">Pruébelo aquí mismo</span>
+      <h2>Una miniatura real del motor de venta</h2>
+      <p>Los mismos códigos y precios del catálogo de ejemplo que trae la aplicación. Escriba un código o toque uno de los chips.</p>
+    </div>
+
+    <div class="demo reveal">
+      <div class="demo-copia">
+        <h3>Escanee un producto</h3>
+        <p>Escriba un código de barras (o <code style="font-family:var(--mono);background:rgba(255,255,255,.06);padding:2px 6px;border-radius:5px">3*código</code> para agregar varias unidades) y presione Enter, igual que con un lector real.</p>
+        <div class="demo-codigos">
+          <button class="chip-codigo" data-codigo="7701001">7701001 · Arroz</button>
+          <button class="chip-codigo" data-codigo="7701002">7701002 · Azúcar</button>
+          <button class="chip-codigo" data-codigo="7701003">7701003 · Aceite</button>
+          <button class="chip-codigo" data-codigo="3*7701017">3*7701017 · Agua ×3</button>
+          <button class="chip-codigo" data-codigo="7701016">7701016 · Gaseosa</button>
+          <button class="chip-codigo" data-codigo="000000">000000 · código inválido</button>
+        </div>
+      </div>
+
+      <div class="caja-demo">
+        <div class="visor">
+          <span class="etq">Total a pagar</span>
+          <span class="monto" id="demo-total">$0</span>
+        </div>
+        <form id="demo-form">
+          <input id="demo-codigo" type="text" placeholder="Código de barras…" autocomplete="off">
+          <button type="submit">Agregar</button>
+        </form>
+        <div id="demo-lineas">
+          <div id="demo-vacio">La venta está vacía — escanee un producto para empezar.</div>
+        </div>
+        <div id="demo-error"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ TECLADO -->
+<section class="seccion">
+  <div class="envoltura">
+    <div class="encabezado-seccion reveal">
+      <span class="kicker">Sin tocar el mouse</span>
+      <h2>Cada pantalla tiene su propio mapa de teclas</h2>
+      <p>El objetivo del plan de estudios: una venta completa, de principio a fin, sin soltar el teclado ni el lector.</p>
+    </div>
+    <div class="teclado-envoltura reveal">
+      <div class="fila-teclado">
+        <div class="tecla"><div class="k">F1</div><div class="d">Nueva venta</div></div>
+        <div class="tecla"><div class="k">F2</div><div class="d">Cantidad</div></div>
+        <div class="tecla"><div class="k">F3</div><div class="d">Buscar</div></div>
+        <div class="tecla"><div class="k">F4</div><div class="d">Precio</div></div>
+        <div class="tecla"><div class="k">F6</div><div class="d">Reimprimir</div></div>
+        <div class="tecla"><div class="k">F8</div><div class="d">Salir</div></div>
+      </div>
+      <div class="fila-teclado">
+        <div class="tecla"><div class="k">Enter</div><div class="d">Agregar código</div></div>
+        <div class="tecla"><div class="k">F12</div><div class="d">Cobrar</div></div>
+        <div class="tecla"><div class="k">Supr</div><div class="d">Quitar línea</div></div>
+        <div class="tecla"><div class="k">Esc</div><div class="d">Cancelar / volver</div></div>
+        <div class="tecla"><div class="k">↓ / ↑</div><div class="d">Navegar listas</div></div>
+        <div class="tecla"><div class="k">RePág / AvPág</div><div class="d">Mes del calendario</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CÓMO EMPEZAR -->
+<section class="seccion" id="empezar">
+  <div class="envoltura">
+    <div class="encabezado-seccion reveal">
+      <span class="kicker">Instalación</span>
+      <h2>Listo para usar en menos de un minuto</h2>
+    </div>
+
+    <div class="pasos reveal">
+      <div class="paso">
+        <h3>Descargue el .exe</h3>
+        <p>Un solo archivo portable. Guárdelo en la carpeta que prefiera —el programa crea ahí mismo su carpeta <code>datos/</code>.</p>
+      </div>
+      <div class="paso">
+        <h3>Ejecútelo</h3>
+        <p>Doble clic. No necesita instalar Python, ni permisos de administrador, ni conexión a Internet.</p>
+      </div>
+      <div class="paso">
+        <h3>Ingrese y practique</h3>
+        <p>Usuarios de ejemplo: <code>admin / admin123</code> y <code>cajero / cajero123</code>. Cámbielos antes de usarlo con estudiantes.</p>
+      </div>
+    </div>
+
+    <div class="aviso-seguridad reveal" style="margin-top:34px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+      <div>
+        <h4>Sobre el aviso de Windows SmartScreen</h4>
+        <p>Al ser un ejecutable nuevo sin certificado de firma de código (que tiene costo), Windows puede mostrar
+        «Se impidió el inicio de una aplicación no reconocida». Es normal en software distribuido de forma
+        independiente: elija <strong>«Más información» → «Ejecutar de todas formas»</strong>. El código fuente
+        completo es público y auditable en el repositorio de GitHub.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CTA FINAL -->
+<section class="cta-final">
+  <div class="envoltura">
+    <h2>¿Listo para poner a practicar a sus estudiantes?</h2>
+    <p>Gratis, de código abierto, y construido específicamente para el aula.</p>
+    <a class="boton-descarga" style="display:inline-flex" href="https://github.com/TheWiche/caja-registradora-poe/releases/latest/download/CajaRegistradora.exe">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+      <span class="textos"><small>WINDOWS 10 / 11 · ~13 MB</small>Descargar CajaRegistradora.exe</span>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="envoltura">
+    <div class="pie-flex">
+      <div class="marca"><img src="img/icono.png" alt="" style="width:24px;height:24px">Sistema de Caja Registradora Didáctica</div>
+      <div class="enlaces-pie">
+        <a href="https://github.com/TheWiche/caja-registradora-poe">Código fuente</a>
+        <a href="https://github.com/TheWiche/caja-registradora-poe/releases">Historial de versiones</a>
+        <a href="https://github.com/TheWiche/caja-registradora-poe/blob/master/plan.md">Documento de alcance</a>
+        <a href="https://github.com/TheWiche/caja-registradora-poe/issues">Reportar un problema</a>
+      </div>
+    </div>
+    <p class="pie-nota">© <span id="anio-actual"></span> — Proyecto educativo de código abierto. No procesa pagos ni datos financieros reales.</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
