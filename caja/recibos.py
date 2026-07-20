@@ -87,6 +87,35 @@ def _escapar_pdf(texto: str) -> str:
     return texto.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
 
 
+def ensamblar_pdf(objetos: list, ruta) -> str:
+    """Ensambla objetos PDF ya serializados (bytes, uno por número de
+    objeto empezando en 1) en un archivo PDF 1.4 válido: numera, arma la
+    tabla xref y el trailer a mano. Compartido por generar_pdf y por
+    caja.barras (etiquetas de productos), para no duplicar el formato de
+    bajo nivel del PDF (plan.md §6.10)."""
+    salida = bytearray(b"%PDF-1.4\n")
+    posiciones = []
+    for numero, cuerpo in enumerate(objetos, start=1):
+        posiciones.append(len(salida))
+        salida += f"{numero} 0 obj\n".encode() + cuerpo + b"\nendobj\n"
+
+    inicio_xref = len(salida)
+    salida += f"xref\n0 {len(objetos) + 1}\n".encode()
+    salida += b"0000000000 65535 f \n"
+    for pos in posiciones:
+        salida += f"{pos:010d} 00000 n \n".encode()
+    salida += (
+        f"trailer\n<< /Size {len(objetos) + 1} /Root 1 0 R >>\n"
+        f"startxref\n{inicio_xref}\n%%EOF\n"
+    ).encode()
+
+    ruta = str(ruta)
+    with open(ruta, "wb") as archivo:
+        archivo.write(salida)
+    log.info("PDF generado: %s", ruta)
+    return ruta
+
+
 def generar_pdf(venta: dict, ruta) -> str:
     """Escribe el recibo como PDF mínimo válido (una página, Courier)."""
     lineas = lineas_recibo(venta)
@@ -110,27 +139,7 @@ def generar_pdf(venta: dict, ruta) -> str:
         + b"\nendstream",
     ]
 
-    salida = bytearray(b"%PDF-1.4\n")
-    posiciones = []
-    for numero, cuerpo in enumerate(objetos, start=1):
-        posiciones.append(len(salida))
-        salida += f"{numero} 0 obj\n".encode() + cuerpo + b"\nendobj\n"
-
-    inicio_xref = len(salida)
-    salida += f"xref\n0 {len(objetos) + 1}\n".encode()
-    salida += b"0000000000 65535 f \n"
-    for pos in posiciones:
-        salida += f"{pos:010d} 00000 n \n".encode()
-    salida += (
-        f"trailer\n<< /Size {len(objetos) + 1} /Root 1 0 R >>\n"
-        f"startxref\n{inicio_xref}\n%%EOF\n"
-    ).encode()
-
-    ruta = str(ruta)
-    with open(ruta, "wb") as archivo:
-        archivo.write(salida)
-    log.info("PDF generado: %s", ruta)
-    return ruta
+    return ensamblar_pdf(objetos, ruta)
 
 
 def ruta_pdf_sugerida(venta: dict):

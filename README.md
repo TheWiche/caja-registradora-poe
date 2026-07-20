@@ -91,7 +91,8 @@ El sistema viene con **20 productos de ejemplo** (códigos `7701001` a
 entrenamiento · `↓` desde el nº de factura salta a la lista.
 
 **Productos:** Enter/`↓` en el buscador salta a la lista · `F5` Nuevo ·
-`F6` Guardar · `F8` Eliminar.
+`F6` Guardar · `F7` Ver código de barras · `F8` Eliminar ·
+`F9` Imprimir etiquetas.
 
 **Usuarios (admin):** `F5` Nuevo perfil · `F6` Guardar · `F8` Activar/
 Desactivar. El administrador crea cajeros y otros administradores,
@@ -118,6 +119,14 @@ conservan su cajero). Siempre debe quedar al menos un administrador activo.
 - **Reinicio entre clases** (Configuración → Reiniciar datos): borra
   ventas y sesiones, restaura los productos de ejemplo y deja un respaldo
   previo. Hay que escribir `REINICIAR` para confirmar.
+- **Códigos de barras reales** (Productos → F7): cualquier producto —
+  nuevo o de ejemplo— se puede ver como código de barras auténtico
+  (EAN-13 con dígito verificador real para códigos generados con el
+  botón "Generar"; Code 39 para cualquier otro código, como los de 7
+  dígitos de los productos de ejemplo), guardarlo en PDF o imprimirlo.
+  **F9** genera una hoja con las etiquetas de todos los productos
+  listados/filtrados (hasta 21 por hoja, pagina sola si hay más), lista
+  para imprimir y pegar en los productos físicos usados en clase.
 
 ## Robustez (qué pasa si algo sale mal)
 
@@ -142,10 +151,11 @@ caja/
   seguridad.py     Contraseñas con PBKDF2 (nunca texto plano)
   recibos.py       Recibo de texto, PDF sin librerías, impresión
   qr.py            Generador de códigos QR en Python puro (sin librerías)
+  barras.py        Códigos de barras EAN-13/Code 39 en Python puro
   pasarela.py      Servidor HTTP efímero: pasarela de pago educativa
   util.py          Formato de dinero y fechas
   ui/              Pantallas Tkinter (login, menú, venta, productos,
-                   historial, reportes, configuración)
+                   historial, reportes, configuración, etiquetas.py)
 datos/             Se crea al primer arranque: caja.db, tickets/,
-                   respaldos/, eventos.log
+                   etiquetas/, respaldos/, eventos.log
 ```

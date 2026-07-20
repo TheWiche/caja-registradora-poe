@@ -26,6 +26,7 @@ RUTA_BD = DATOS / "caja.db"
 RUTA_DIARIO = DATOS / "venta_en_curso.json"
 CARPETA_RESPALDOS = DATOS / "respaldos"
 CARPETA_TICKETS = DATOS / "tickets"
+CARPETA_ETIQUETAS = DATOS / "etiquetas"
 RUTA_LOG = DATOS / "eventos.log"
 
 _MAX_RESPALDOS = 15
@@ -184,6 +185,7 @@ def iniciar():
     DATOS.mkdir(exist_ok=True)
     CARPETA_RESPALDOS.mkdir(exist_ok=True)
     CARPETA_TICKETS.mkdir(exist_ok=True)
+    CARPETA_ETIQUETAS.mkdir(exist_ok=True)
     con = conexion()
     con.executescript(_ESQUEMA)
     _migrar(con)
@@ -363,6 +365,14 @@ def listar_productos(filtro: str = ""):
             "SELECT * FROM productos WHERE activo = 1 ORDER BY nombre"
         ).fetchall()
     return [dict(f) for f in filas]
+
+
+def obtener_codigos_barras() -> set:
+    """Todos los codigo_barras ya usados (activos e inactivos: la
+    columna es UNIQUE en toda la tabla, así que un código sugerido debe
+    evitarlos a todos)."""
+    filas = conexion().execute("SELECT codigo_barras FROM productos").fetchall()
+    return {f["codigo_barras"] for f in filas}
 
 
 def crear_producto(codigo: str, nombre: str, precio: int, categoria: str, stock: int):

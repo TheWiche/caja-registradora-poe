@@ -2,15 +2,16 @@
 el cajero puede consultar y buscar (plan.md §4 seguridad).
 
 Teclas:  Enter en buscador → lista · F5 Nuevo · F6 Guardar ·
-         F8 Eliminar · Esc Menú
+         F7 Código de barras · F8 Eliminar · F9 Imprimir etiquetas ·
+         Esc Menú
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 
-from .. import db
+from .. import barras, db
 from ..util import fmt_dinero, parse_dinero
-from . import estilos
+from . import estilos, etiquetas
 from .estilos import BarraSuperior
 
 
@@ -23,6 +24,8 @@ class PantallaProductos(ttk.Frame):
 
         BarraSuperior(self, app, "Productos", volver=True)
         app.atajo("<Escape>", lambda e: app.mostrar_menu())
+        app.atajo("<F7>", lambda e: self._ver_codigo_barras())
+        app.atajo("<F9>", lambda e: self._imprimir_etiquetas())
         if self.es_admin:
             app.atajo("<F5>", lambda e: self._limpiar())
             app.atajo("<F6>", lambda e: self._guardar())
@@ -66,6 +69,16 @@ class PantallaProductos(ttk.Frame):
         if self.es_admin:
             self.tabla.bind("<<TreeviewSelect>>", lambda e: self._cargar_seleccion())
 
+        fila_codigo_barras = ttk.Frame(panel_lista, style="Tarjeta.TFrame")
+        fila_codigo_barras.grid(row=3, column=0, columnspan=2, sticky="ew",
+                                pady=(10, 0))
+        ttk.Button(fila_codigo_barras, text="Ver código de barras  (F7)",
+                   style="Plano.TButton",
+                   command=self._ver_codigo_barras).pack(side="left")
+        ttk.Button(fila_codigo_barras, text="Imprimir etiquetas  (F9)",
+                   style="Plano.TButton",
+                   command=self._imprimir_etiquetas).pack(side="left", padx=(8, 0))
+
         # ---- formulario (solo administrador)
         if self.es_admin:
             self._construir_formulario(cuerpo)
@@ -87,15 +100,26 @@ class PantallaProductos(ttk.Frame):
         self.titulo_form.grid(row=0, column=0, sticky="w", pady=(0, 10))
 
         self.campos = {}
-        etiquetas = (("codigo", "Código de barras"), ("nombre", "Nombre"),
-                     ("precio", "Precio"), ("categoria", "Categoría"),
-                     ("stock", "Stock"))
-        for fila, (clave, texto) in enumerate(etiquetas, start=1):
+        definiciones = (("codigo", "Código de barras"), ("nombre", "Nombre"),
+                        ("precio", "Precio"), ("categoria", "Categoría"),
+                        ("stock", "Stock"))
+        for fila, (clave, texto) in enumerate(definiciones, start=1):
             ttk.Label(formulario, text=texto + ":", style="Campo.TLabel").grid(
                 row=fila * 2 - 1, column=0, sticky="w")
-            entrada = tk.Entry(formulario, font=(estilos.FUENTE, 13),
-                               relief="solid", bd=1)
-            entrada.grid(row=fila * 2, column=0, sticky="ew", pady=(2, 8))
+            if clave == "codigo":
+                sub = ttk.Frame(formulario, style="Tarjeta.TFrame")
+                sub.grid(row=fila * 2, column=0, sticky="ew", pady=(2, 8))
+                sub.columnconfigure(0, weight=1)
+                entrada = tk.Entry(sub, font=(estilos.FUENTE, 13),
+                                   relief="solid", bd=1)
+                entrada.grid(row=0, column=0, sticky="ew")
+                ttk.Button(sub, text="Generar", style="Plano.TButton",
+                          command=self._generar_codigo).grid(row=0, column=1,
+                                                             padx=(6, 0))
+            else:
+                entrada = tk.Entry(formulario, font=(estilos.FUENTE, 13),
+                                   relief="solid", bd=1)
+                entrada.grid(row=fila * 2, column=0, sticky="ew", pady=(2, 8))
             self.campos[clave] = entrada
 
         ttk.Button(formulario, text="Guardar  (F6)", style="Exito.TButton",
@@ -196,3 +220,43 @@ class PantallaProductos(ttk.Frame):
             db.eliminar_producto(int(seleccion[0]))
             self._refrescar()
             self._limpiar()
+
+    def _generar_codigo(self):
+        if self.id_editando and self.campos["codigo"].get().strip():
+            messagebox.showinfo(
+                "Productos",
+                "Este producto ya tiene código. Bórrelo primero si quiere "
+                "generar uno nuevo.", parent=self.app)
+            return
+        self.campos["codigo"].delete(0, "end")
+        self.campos["codigo"].insert(0, barras.sugerir_codigo_ean13())
+
+    def _producto_seleccionado(self):
+        seleccion = self.tabla.selection()
+        if not seleccion:
+            messagebox.showwarning("Productos", "Seleccione primero un "
+                                   "producto en la lista.", parent=self.app)
+            return None
+        return next((p for p in db.listar_productos(self.buscador.get())
+                    if p["id"] == int(seleccion[0])), None)
+
+    def _ver_codigo_barras(self):
+        producto = self._producto_seleccionado()
+        if producto:
+            etiquetas.DialogoCodigoBarras(self.app, producto)
+
+    def _imprimir_etiquetas(self):
+        productos = db.listar_productos(self.buscador.get())
+        if not productos:
+            messagebox.showwarning("Productos", "No hay productos en la "
+                                   "lista para imprimir.", parent=self.app)
+            return
+        sugerida = barras.ruta_hoja_sugerida()
+        ruta = filedialog.asksaveasfilename(
+            parent=self.app, defaultextension=".pdf",
+            initialdir=str(sugerida.parent), initialfile=sugerida.name,
+            filetypes=[("Archivo PDF", "*.pdf")])
+        if ruta:
+            barras.generar_pdf_hoja_etiquetas(productos, ruta)
+            messagebox.showinfo("Productos", f"Hoja de etiquetas guardada "
+                                f"en:\n{ruta}", parent=self.app)
