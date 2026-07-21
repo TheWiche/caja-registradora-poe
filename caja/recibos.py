@@ -9,7 +9,7 @@ Internet, cumple plan.md §6.1.
 import os
 import logging
 
-from . import db
+from . import db, impresion
 from .util import fmt_dinero, fecha_legible
 
 ANCHO = 40  # columnas del recibo (papel térmico de 80 mm)
@@ -149,15 +149,28 @@ def ruta_pdf_sugerida(venta: dict):
 # ---------------------------------------------------------------- impresión
 
 def imprimir(venta: dict) -> str:
-    """Envía el recibo a la impresora predeterminada de Windows.
+    """Envía el recibo a la impresora predeterminada.
 
-    Guarda el ticket como .txt (queda como constancia aunque no haya
-    impresora) y lo manda con el verbo 'print' del shell, que funciona
-    con impresoras térmicas instaladas con su driver de Windows.
+    Siempre guarda el ticket como .txt (constancia aunque no haya
+    impresora). Con la opción de impresora térmica activa (el hardware
+    del curso) manda ESC/POS directo por el spooler: sin márgenes de
+    página ni líneas partidas, y con corte de papel. Si esa vía falla,
+    cae a la impresión normal de Windows (verbo 'print' del shell).
     """
     ruta = db.CARPETA_TICKETS / f"{venta['numero_factura']}.txt"
     ruta.write_text(texto_recibo(venta) + "\n\n\n", encoding="cp1252",
                     errors="replace")
+    if db.config_activa("impresion_termica"):
+        try:
+            impresion.imprimir_raw(
+                impresion.ticket_texto(lineas_recibo(venta)),
+                documento=f"Recibo {venta['numero_factura']}")
+            log.info("Recibo %s impreso en térmica",
+                     venta["numero_factura"])
+            return str(ruta)
+        except OSError:
+            log.exception("Falló la impresión térmica; se intenta la "
+                          "impresión normal de Windows")
     os.startfile(str(ruta), "print")
     log.info("Recibo %s enviado a impresión", venta["numero_factura"])
     return str(ruta)

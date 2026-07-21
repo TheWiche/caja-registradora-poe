@@ -75,6 +75,9 @@ Si la respuesta a (4) es "sí" sin que (1) lo justifique claramente, se rechaza 
 - Opción de reinicio de base de datos entre clases (con confirmación explícita, no accidental).
 - Atajos de teclado para agilizar el cobro.
 - Simulación de errores comunes: código inexistente, efectivo insuficiente, producto duplicado — para práctica de manejo de errores por parte del estudiante.
+- Exportar/importar todos los datos (productos, usuarios, ventas, configuración) en un solo archivo, para preparar la clase en un computador y clonarla a los demás equipos del aula.
+
+> **Decisión (21/07/2026):** exportar/importar reutiliza la API de respaldo de SQLite (`conexion().backup(...)`), la misma que ya usa `db.respaldar()`, en vez de un formato propio — así el archivo exportado es simplemente una copia consistente de la base, sin lógica de serialización nueva que mantener. Importar exige un archivo con las tablas esperadas y al menos un administrador activo (si no, nadie podría entrar a administrar tras importar); antes de reemplazar los datos actuales hace un respaldo automático, igual que el reinicio entre clases.
 
 > **Decisión (07/07/2026):** se eliminó el "quiz de práctica de cambio" (diálogo que pedía al estudiante calcular el cambio). Razón: interrumpía el flujo y no existe en un POS real. La fidelidad al sistema real prima sobre los refuerzos didácticos artificiales: el estudiante practica con el mismo flujo que encontrará en un trabajo (cobro en paso aparte con denominaciones rápidas, cambio en visor, foco de vuelta al escáner). Los mensajes de error didácticos (código inexistente, efectivo insuficiente, duplicado) se conservan porque sí ocurren en cajas reales.
 

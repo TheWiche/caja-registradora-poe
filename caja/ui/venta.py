@@ -183,6 +183,20 @@ class PantallaVenta(ttk.Frame):
         app.atajo("<F12>", lambda e: self._cobrar())
         app.atajo("<Delete>", lambda e: self._quitar_linea())
         app.atajo("<Escape>", lambda e: self._cancelar())
+        # La caja siempre está escuchando el lector: si el foco quedó en
+        # la tabla o en un botón y llega un escaneo (o se teclea un
+        # código), los caracteres se redirigen solos al campo de código.
+        app.atajo("<Key>", self._captura_global)
+
+    def _captura_global(self, evento):
+        if isinstance(evento.widget, tk.Entry):
+            return None
+        caracter = evento.char
+        if not caracter or not caracter.isprintable():
+            return None
+        self.entrada_codigo.focus_set()
+        self.entrada_codigo.insert("end", caracter)
+        return "break"
 
     def _actualizar_ticket(self):
         consecutivo = int(db.obtener_config("consecutivo_factura", "0")) + 1
@@ -918,6 +932,11 @@ class DialogoPrecio(tk.Toplevel):
     def _consultar(self):
         codigo = self.entrada.get().strip()
         self.entrada.delete(0, "end")
+        if not codigo:
+            # Los lectores suelen enviar un terminador doble (Enter+salto):
+            # el segundo llega con el campo ya vacío y no debe borrar el
+            # resultado recién mostrado.
+            return
         producto = db.buscar_por_codigo(codigo)
         if producto is None:
             self.resultado.configure(text=f"El código «{codigo}» no existe.",

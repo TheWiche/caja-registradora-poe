@@ -127,6 +127,17 @@ conservan su cajero). Siempre debe quedar al menos un administrador activo.
   **F9** genera una hoja con las etiquetas de todos los productos
   listados/filtrados (hasta 21 por hoja, pagina sola si hay más), lista
   para imprimir y pegar en los productos físicos usados en clase.
+- **Impresora térmica** (Configuración): con la casilla activa (por
+  defecto), los tickets y etiquetas salen por ESC/POS directo a la
+  impresora — sin márgenes de página ni líneas partidas, con código de
+  barras nativo y corte de papel. "Imprimir página de prueba" verifica
+  la impresora y el lector en segundos. Si algo falla, cae sola a la
+  impresión normal de Windows.
+- **Exportar/Importar datos** (Configuración): guarda productos,
+  usuarios, ventas y configuración en un solo archivo `.db` para
+  preparar la clase en un computador y llevarla a los demás (memoria
+  USB). Importar reemplaza todos los datos actuales — pide escribir
+  `IMPORTAR` y respalda automáticamente lo que había antes.
 
 ## Robustez (qué pasa si algo sale mal)
 

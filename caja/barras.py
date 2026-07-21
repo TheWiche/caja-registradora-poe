@@ -21,7 +21,7 @@ producto (ver plan.md, decisión de códigos de barras).
 import secrets
 from dataclasses import dataclass, field
 
-from . import db, recibos
+from . import db, impresion, recibos
 from .util import fmt_dinero
 
 MM = 72 / 25.4  # 1 mm en puntos PDF
@@ -378,12 +378,24 @@ def ruta_hoja_sugerida():
 # ---------------------------------------------------------------- impresión
 
 def imprimir_etiqueta(producto: dict) -> str:
-    """Mismo patrón que recibos.imprimir: genera el archivo y lo manda
-    con el verbo 'print' del shell. El archivo queda guardado aunque no
-    haya impresora; OSError se propaga para que la pantalla lo capture."""
+    """Imprime la etiqueta individual. Con impresora térmica activa (el
+    hardware del curso), el código de barras sale impreso nativamente
+    por la propia térmica (ESC/POS) y queda escaneable con el lector —
+    petición del usuario: las etiquetas individuales van directo a la
+    impresora pequeña. El PDF queda guardado siempre como constancia;
+    sin térmica, se imprime ese PDF por la vía normal de Windows.
+    OSError se propaga para que la pantalla lo capture."""
     import os
     ruta = ruta_etiqueta_sugerida(producto)
     generar_pdf_etiqueta(producto, ruta)
+    if db.config_activa("impresion_termica"):
+        codigo = generar_codigo_barras(producto["codigo_barras"])
+        impresion.imprimir_raw(
+            impresion.ticket_etiqueta(
+                producto["nombre"], fmt_dinero(producto["precio"]),
+                codigo.codigo, codigo.simbologia),
+            documento=f"Etiqueta {producto['codigo_barras']}")
+        return str(ruta)
     os.startfile(str(ruta), "print")
     return str(ruta)
 

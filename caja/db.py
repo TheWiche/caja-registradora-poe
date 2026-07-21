@@ -14,6 +14,7 @@ Garantías que implementa este módulo:
 
 import json
 import logging
+import shutil
 import sqlite3
 from pathlib import Path
 
@@ -131,6 +132,7 @@ _CONFIG_DEFECTO = {
     "iva_porcentaje": "0",
     "modo_entrenamiento": "0",
     "imprimir_auto": "0",
+    "impresion_termica": "1",
     "controlar_stock": "0",
     "consecutivo_factura": "0",
     "nombre_negocio": "SISTEMA DE CAJA DIDÁCTICO",
@@ -608,6 +610,79 @@ def respaldar() -> Path:
         viejo.unlink(missing_ok=True)
     log.info("Respaldo creado: %s", destino.name)
     return destino
+
+
+def exportar_datos(destino) -> Path:
+    """Copia completa y consistente de la base de datos (usuarios,
+    productos, ventas y configuración) en un solo archivo, para llevarla
+    a otro computador del aula e importarla allá. Usa la API de respaldo
+    de SQLite, así que es segura incluso con la aplicación en uso."""
+    destino = Path(destino)
+    with sqlite3.connect(destino) as copia:
+        conexion().backup(copia)
+    copia.close()
+    log.info("Datos exportados a %s", destino)
+    return destino
+
+
+def _validar_datos_externos(ruta: Path):
+    """El archivo debe ser una base de datos de ESTE sistema y traer al
+    menos un administrador activo (si no, al importar nadie podría
+    entrar a administrar: misma protección de plan.md §6.9)."""
+    con = sqlite3.connect(f"file:{ruta}?mode=ro", uri=True)
+    try:
+        con.row_factory = sqlite3.Row
+        tablas = {f["name"] for f in con.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'")}
+        requeridas = {"usuarios", "productos", "ventas", "detalle_venta",
+                      "configuracion"}
+        faltantes = requeridas - tablas
+        if faltantes:
+            raise ValueError(
+                "El archivo no es una exportación de este sistema "
+                f"(faltan tablas: {', '.join(sorted(faltantes))}).")
+        admins = con.execute(
+            "SELECT COUNT(*) FROM usuarios WHERE rol = 'administrador' "
+            "AND activo = 1").fetchone()[0]
+        if admins == 0:
+            raise ValueError("El archivo no tiene ningún administrador "
+                             "activo: no se puede importar.")
+    except sqlite3.DatabaseError:
+        raise ValueError("El archivo elegido no es una base de datos "
+                         "válida de este sistema.")
+    finally:
+        con.close()
+
+
+def importar_datos(origen):
+    """Reemplaza TODOS los datos actuales por los del archivo exportado
+    en otro computador. Antes de tocar nada: valida el archivo y hace un
+    respaldo automático de los datos actuales (plan.md §6.5: nada se
+    elimina sin vuelta atrás)."""
+    origen = Path(origen)
+    if not origen.exists():
+        raise ValueError("El archivo elegido no existe.")
+    _validar_datos_externos(origen)
+    respaldar()
+    cerrar()
+    try:
+        # Los archivos del diario WAL se limpian ANTES de reemplazar la
+        # base: si quedaran, SQLite intentaría aplicarles sus cambios a
+        # la base importada y la corrompería. Si otro proceso los tiene
+        # abiertos, se aborta aquí sin haber tocado nada.
+        for residual in (Path(str(RUTA_BD) + "-wal"),
+                         Path(str(RUTA_BD) + "-shm")):
+            residual.unlink(missing_ok=True)
+        shutil.copy2(origen, RUTA_BD)
+    except PermissionError:
+        iniciar()  # reabrir: los datos actuales siguen intactos
+        raise ValueError(
+            "Otro programa está usando la base de datos (¿hay otra "
+            "ventana de la aplicación abierta?). Ciérrela e intente "
+            "de nuevo. Los datos actuales no se modificaron.")
+    borrar_diario()
+    iniciar()  # reabre la conexión y aplica migraciones si el archivo es viejo
+    log.info("Datos importados desde %s", origen)
 
 
 def reiniciar_datos():
